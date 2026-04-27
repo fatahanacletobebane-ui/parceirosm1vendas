@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roleta da Sorte - Cursos de Programação</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #ffd700;
+            --gold-light: #ffed4a;
+            --gold-dark: #b8860b;
+            --red: #e63946;
+            --red-dark: #c1121f;
+            --green: #2a9d8f;
+            --green-light: #4cc9b0;
+            --dark: #0f0f1a;
+            --darker: #080810;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: var(--darker);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #fff;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse at 20% 80%, rgba(42, 157, 143, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(230, 57, 70, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { opacity: 0; transform: translateY(100vh) scale(0); }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-100vh) scale(1); }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 215, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-box h2 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-box .subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .policy-list {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .policy-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--glass);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .policy-item:hover {
+            background: rgba(255, 215, 0, 0.05);
+            border-color: rgba(255, 215, 0, 0.2);
+        }
+
+        .policy-number {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--dark);
+            flex-shrink: 0;
+        }
+
+        .policy-text {
+            font-size: 13px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--dark);
+            border: none;
+            padding: 16px 40px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Header */
+        .site-header {
+            text-align: center;
+            padding: 40px 20px 30px;
+            width: 100%;
+        }
+
+        .logo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 8px 20px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green-light);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .logo-badge span {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .site-header h1 {
+            font-size: clamp(32px, 6vw, 56px);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+
+        .site-header h1 .gradient-text {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .site-header p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.6);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Wheel Section */
+        .wheel-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            position: relative;
+        }
+
+        .wheel-outer-frame {
+            position: relative;
+            width: min(400px, 90vw);
+            height: min(400px, 90vw);
+            border-radius: 50%;
+            background: linear-gradient(145deg, #2a2a3e, #1a1a2e);
+            padding: 15px;
+            box-shadow: 
+                0 0 0 2px rgba(255, 215, 0, 0.3),
+                0 0 0 8px rgba(255, 215, 0, 0.1),
+                0 0 60px rgba(255, 215, 0, 0.15),
+                inset 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .wheel-inner-frame {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+
+        .wheel-segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            left: 0;
+            top: 0;
+            clip-path: polygon(100% 100%, 0 0, 100% 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wheel-segment .segment-content {
+            position: absolute;
+            transform: rotate(45deg);
+            transform-origin: center;
+            text-align: center;
+            font-weight: 800;
+            font-size: 14px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            left: 60%;
+            top: 25%;
+        }
+
+        .wheel-segment .segment-icon {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Segment Colors */
+        .seg-1 { background: linear-gradient(135deg, #e63946, #c1121f); transform: rotate(0deg); }
+        .seg-2 { background: linear-gradient(135deg, #2a9d8f, #21867a); transform: rotate(45deg); }
+        .seg-3 { background: linear-gradient(135deg, #f4a261, #e76f51); transform: rotate(90deg); }
+        .seg-4 { background: linear-gradient(135deg, #264653, #1d3557); transform: rotate(135deg); }
+        .seg-5 { background: linear-gradient(135deg, #e63946, #c1121f); transform: rotate(180deg); }
+        .seg-6 { background: linear-gradient(135deg, #2a9d8f, #21867a); transform: rotate(225deg); }
+        .seg-7 { background: linear-gradient(135deg, #f4a261, #e76f51); transform: rotate(270deg); }
+        .seg-8 { background: linear-gradient(135deg, #264653, #1d3557); transform: rotate(315deg); }
+
+        .seg-1 .segment-content { color: #fff; }
+        .seg-2 .segment-content { color: #fff; }
+        .seg-3 .segment-content { color: #fff; }
+        .seg-4 .segment-content { color: rgba(255,255,255,0.7); }
+        .seg-5 .segment-content { color: #fff; }
+        .seg-6 .segment-content { color: #fff; }
+        .seg-7 .segment-content { color: #fff; }
+        .seg-8 .segment-content { color: rgba(255,255,255,0.7); }
+
+        /* Center Hub */
+        .wheel-hub {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(145deg, var(--gold), var(--gold-dark));
+            border-radius: 50%;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 0 0 4px rgba(255, 215, 0, 0.3),
+                0 0 30px rgba(255, 215, 0, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        }
+
+        .wheel-hub::after {
+            content: '★';
+            font-size: 32px;
+            color: var(--dark);
+        }
+
+        /* Pointer */
+        .wheel-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+        }
+
+        .wheel-pointer svg {
+            width: 40px;
+            height: 50px;
+        }
+
+        /* Spin Button */
+        .spin-container {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .spin-btn {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--dark);
+            border: none;
+            padding: 20px 60px;
+            font-size: 20px;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            box-shadow: 
+                0 10px 40px rgba(255, 215, 0, 0.4),
+                0 0 0 4px rgba(255, 215, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 2px;
+        }
+
+        .spin-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .spin-btn:hover::before {
+            left: 100%;
+        }
+
+        .spin-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 
+                0 15px 50px rgba(255, 215, 0, 0.5),
+                0 0 0 4px rgba(255, 215, 0, 0.3);
+        }
+
+        .spin-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .spin-btn:disabled {
+            background: linear-gradient(135deg, #444, #333);
+            color: rgba(255,255,255,0.4);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .spins-counter {
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .spins-counter .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .spins-counter .dot.active {
+            background: var(--gold);
+            box-shadow: 0 0 10px var(--gold);
+        }
+
+        .spins-counter .dot.used {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .spins-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-left: 8px;
+        }
+
+        /* Results Panel */
+        .results-panel {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 40px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+            pointer-events: none;
+        }
+
+        .results-panel.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .result-card {
+            background: linear-gradient(145deg, rgba(26, 26, 46, 0.9), rgba(15, 15, 26, 0.9));
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+        }
+
+        .result-title {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .discount-display {
+            font-size: clamp(48px, 10vw, 80px);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .discount-label {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 30px;
+        }
+
+        .promo-code-box {
+            background: rgba(255, 215, 0, 0.05);
+            border: 2px dashed rgba(255, 215, 0, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .promo-code-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .promo-code {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: var(--gold);
+            font-family: 'Courier New', monospace;
+        }
+
+        .payment-section {
+            text-align: left;
+            background: var(--glass);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .payment-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .payment-method {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .payment-method:hover {
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .payment-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--green), var(--green-light));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .payment-info {
+            flex: 1;
+        }
+
+        .payment-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .payment-detail {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 2px;
+        }
+
+        .copy-btn {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--gold);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: var(--gold);
+        }
+
+        .copy-btn.copied {
+            background: var(--green);
+            color: #fff;
+            border-color: var(--green);
+        }
+
+        .validity-notice {
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(230, 57, 70, 0.1);
+            border: 1px solid rgba(230, 57, 70, 0.2);
+            border-radius: 10px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Spin History */
+        .history-section {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .history-title {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .history-item {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .history-item.active {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .history-item .spin-num {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 8px;
+        }
+
+        .history-item .spin-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .history-item.active .spin-value {
+            color: var(--gold);
+        }
+
+        .history-item .spin-label {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 4px;
+        }
+
+        /* Footer */
+        .site-footer {
+            margin-top: auto;
+            padding: 40px 20px 20px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .admin-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .admin-info .admin-label {
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .modal-box {
+                padding: 24px;
+            }
+
+            .result-card {
+                padding: 24px;
+            }
+
+            .history-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .history-item {
+                padding: 12px;
+            }
+        }
+
+        /* Animations */
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="particles" id="particles"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Terms Modal -->
+    <div class="modal-overlay active" id="terms-modal">
+        <div class="modal-box">
+            <h2>🎰 Roleta da Sorte</h2>
+            <p class="subtitle">Leia as regras antes de jogar</p>
+
+            <div class="policy-list">
+                <div class="policy-item">
+                    <div class="policy-number">1</div>
+                    <div class="policy-text">Cada participante tem direito a <strong>3 giros</strong> na roleta por sessão.</div>
+                </div>
+                <div class="policy-item">
+                    <div class="policy-number">2</div>
+                    <div class="policy-text">O desconto máximo acumulado é de <strong>50%</strong> no curso.</div>
+                </div>
+                <div class="policy-item">
+                    <div class="policy-number">3</div>
+                    <div class="policy-text">O código promocional gerado tem validade de <strong>7 dias</strong> para pagamento.</div>
+                </div>
+                <div class="policy-item">
+                    <div class="policy-number">4</div>
+                    <div class="policy-text">O prêmio é pessoal e intransferível. Não cumulativo com outras promoções.</div>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="accept-terms">Aceitar e Jogar</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <header class="site-header">
+            <div class="logo-badge">
+                <div class="dot"></div>
+                <span>Cursos de Programação</span>
+            </div>
+            <h1>
+                <span class="gradient-text">Roleta da Sorte</span>
+            </h1>
+            <p>Gire 3 vezes e acumule até 50% de desconto no curso!</p>
+        </header>
+
+        <section class="wheel-section">
+            <div class="wheel-outer-frame">
+                <div class="wheel-inner-frame">
+                    <div class="wheel" id="wheel">
+                        <div class="wheel-segment seg-1">
+                            <div class="segment-content">
+                                <span class="segment-icon">🎯</span>
+                                <span>10%</span>
+                            </div>
+                        </div>
+                        <div class="wheel-segment seg-2">
+                            <div class="segment-content">
+                                <span class="segment-icon">⭐</span>
+                                <span>20%</span>
+                            </div>
+                        </div>
+                        <div class="wheel-segment seg-3">
+                            <div class="segment-content">
+                                <span class="segment-icon">🔥</span>
+                                <span>30%</span>
+                            </div>
+                        </div>
+                        <div class="wheel-segment seg-4">
+                            <div class="segment-content">
+                                <span class="segment-icon">💎</span>
+                                <span>50%</span>
+                            </div>
+                        </div>
+                        <div class="wheel-segment seg-5">
+                            <div class="segment-content">
+                                <span class="segment-icon">🎯</span>
+                                <span>10%</span>
+                            </div>
+                        </div>
+                        <div class="wheel-segment seg-6">
+                            <div class="segment-content">
+                                <span class="segment-icon">⭐</span>
+                                <span>20%</span>
+                            </div>
+                        </div>
+                        <div class="wheel-segment seg-7">
+                            <div class="segment-content">
+                                <span class="segment-icon">🔥</span>
+                                <span>30%</span>
+                            </div>
+                        </div>
+                        <div class="wheel-segment seg-8">
+                            <div class="segment-content">
+                                <span class="segment-icon">😢</span>
+                                <span>0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wheel-hub"></div>
+                </div>
+                <div class="wheel-pointer">
+                    <svg viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 50L0 10C0 4.477 4.477 0 10 0h20c5.523 0 10 4.477 10 10L20 50z" fill="url(#pointerGrad)"/>
+                        <circle cx="20" cy="12" r="6" fill="#0f0f1a"/>
+                        <defs>
+                            <linearGradient id="pointerGrad" x1="20" y1="0" x2="20" y2="50" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#ffd700"/>
+                                <stop offset="1" stop-color="#b8860b"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="spin-container">
+                <button class="spin-btn" id="spin-btn">
+                    GIRAR AGORA
+                </button>
+                <div class="spins-counter">
+                    <div class="dot active" id="dot-1"></div>
+                    <div class="dot active" id="dot-2"></div>
+                    <div class="dot active" id="dot-3"></div>
+                    <span class="spins-label">giros restantes</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- History -->
+        <div class="history-section" id="history-section" style="display: none;">
+            <div class="history-title">Resultados dos Giros</div>
+            <div class="history-grid" id="history-grid">
+                <div class="history-item" id="hist-1">
+                    <div class="spin-num">Giro 1</div>
+                    <div class="spin-value">-</div>
+                    <div class="spin-label">Aguardando</div>
+                </div>
+                <div class="history-item" id="hist-2">
+                    <div class="spin-num">Giro 2</div>
+                    <div class="spin-value">-</div>
+                    <div class="spin-label">Aguardando</div>
+                </div>
+                <div class="history-item" id="hist-3">
+                    <div class="spin-num">Giro 3</div>
+                    <div class="spin-value">-</div>
+                    <div class="spin-label">Aguardando</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="results-panel" id="results-panel">
+            <div class="result-card">
+                <div class="result-title">🎉 Parabéns! Você Ganhou</div>
+                <div class="discount-display" id="final-discount">0%</div>
+                <div class="discount-label">de desconto total</div>
+
+                <div class="promo-code-box">
+                    <div class="promo-code-label">Seu Código Promocional</div>
+                    <div class="promo-code" id="promo-code">---</div>
+                </div>
+
+                <div class="payment-section">
+                    <div class="payment-title">
+                        <span>💳</span> Dados para Pagamento
+                    </div>
+
+                    <div class="payment-method">
+                        <div class="payment-icon">📱</div>
+                        <div class="payment-info">
+                            <div class="payment-name">M-Pesa</div>
+                            <div class="payment-detail">Anacleto Bebane</div>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('860407269', this)">Copiar</button>
+                    </div>
+
+                    <div class="payment-method">
+                        <div class="payment-icon">🏪</div>
+                        <div class="payment-info">
+                            <div class="payment-name">M-Pesa Paga Fácil</div>
+                            <div class="payment-detail">Agente Autorizado</div>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('1228803', this)">Copiar</button>
+                    </div>
+
+                    <div class="payment-method">
+                        <div class="payment-icon">🏦</div>
+                        <div class="payment-info">
+                            <div class="payment-name">Millennium BIM</div>
+                            <div class="payment-detail">Conta Corrente</div>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('000100000012473356257', this)">Copiar</button>
+                    </div>
+                </div>
+
+                <div class="validity-notice">
+                    <span>⏰</span>
+                    <span>Código válido por 7 dias. Após pagamento, envie comprovante para o administrador.</span>
+                </div>
+            </div>
+        </div>
+
+        <footer class="site-footer">
+            <div class="admin-info">
+                <span>👤 Administrador:</span>
+                <span class="admin-label">860407269</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAizJfCjfrJlA_tgPNZolcpdWW5udlZHcg",
+  authDomain: "islam-78889.firebaseapp.com",
+  databaseURL: "https://islam-78889-default-rtdb.firebaseio.com",
+  projectId: "islam-78889",
+  storageBucket: "islam-78889.firebasestorage.app",
+  messagingSenderId: "974691409109",
+  appId: "1:974691409109:web:aa7fccfbce94898224d65c"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+
+auth.signInAnonymously();
+
+/* =========================
+   GUARDAR VENCEDOR
+========================= */
+async function saveWinner(promoCode) {
+    const user = auth.currentUser;
+
+    const data = {
+        uid: user.uid,
+        desconto: totalDiscount,
+        codigo: promoCode,
+        giros: spinResults,
+        data: new Date().toISOString()
+    };
+
+    db.ref("roleta_vencedores").push(data);
+}
+
+/* =========================
+   MARCAR COMO JOGADO
+========================= */
+function markPlayed() {
+    const user = auth.currentUser;
+
+    db.ref("roleta_jogadores/" + user.uid).set({
+        played: true
+    });
+}
+
+/* =========================
+   WHATSAPP
+========================= */
+function sendToWhatsApp(code) {
+    const number = "258860407269";
+    const msg = `Ganhei ${totalDiscount}% desconto. Código: ${code}`;
+    window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`, "_blank");
+}
+
+/* =========================
+   FINAL DO JOGO (INTEGRAÇÃO)
+========================= */
+const originalShowFinalResult = showFinalResult;
+
+showFinalResult = async function () {
+    const promoCode = generatePromoCode();
+
+    document.getElementById('final-discount').textContent = totalDiscount + '%';
+    document.getElementById('promo-code').textContent = promoCode;
+
+    await saveWinner(promoCode);
+    markPlayed();
+    sendToWhatsApp(promoCode);
+
+    setTimeout(() => {
+        resultsPanel.classList.add('visible');
+        fireConfetti();
+        resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 500);
+}
+  
+        // Create floating particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Game State
+        let spinsLeft = 3;
+        let currentSpin = 0;
+        let totalDiscount = 0;
+        let spinResults = [];
+        let isSpinning = false;
+        let currentRotation = 0;
+
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spin-btn');
+        const termsModal = document.getElementById('terms-modal');
+        const acceptBtn = document.getElementById('accept-terms');
+        const resultsPanel = document.getElementById('results-panel');
+        const historySection = document.getElementById('history-section');
+
+        // Segments configuration (8 segments, 45 degrees each)
+        const segments = [
+            { value: 10, label: '10%', icon: '🎯' },
+            { value: 20, label: '20%', icon: '⭐' },
+            { value: 30, label: '30%', icon: '🔥' },
+            { value: 50, label: '50%', icon: '💎' },
+            { value: 10, label: '10%', icon: '🎯' },
+            { value: 20, label: '20%', icon: '⭐' },
+            { value: 30, label: '30%', icon: '🔥' },
+            { value: 0, label: '0%', icon: '😢' }
+        ];
+
+        // Accept terms
+        acceptBtn.addEventListener('click', () => {
+            termsModal.classList.remove('active');
+            setTimeout(() => {
+                termsModal.style.display = 'none';
+            }, 400);
+        });
+
+        // Spin function
+        spinBtn.addEventListener('click', () => {
+            if (isSpinning || spinsLeft <= 0) return;
+
+            isSpinning = true;
+            spinBtn.disabled = true;
+            spinBtn.textContent = 'GIRANDO...';
+
+            // Random segment
+            const segmentIndex = Math.floor(Math.random() * 8);
+            const segment = segments[segmentIndex];
+
+            // Calculate rotation (pointer is at top, so we need to land on the segment)
+            // Each segment is 45 degrees. We add extra rotations for effect
+            const segmentAngle = segmentIndex * 45;
+            const randomOffset = Math.random() * 30 + 7.5; // Random position within segment
+            const extraRotations = 5 + Math.floor(Math.random() * 3); // 5-7 full rotations
+            const targetRotation = currentRotation + (extraRotations * 360) + (360 - segmentAngle - randomOffset);
+
+            currentRotation = targetRotation;
+            wheel.style.transform = `rotate(${targetRotation}deg)`;
+
+            // Wait for spin to complete
+            setTimeout(() => {
+                handleSpinComplete(segment);
+            }, 4000);
+        });
+
+        function handleSpinComplete(segment) {
+            isSpinning = false;
+            currentSpin++;
+            spinsLeft--;
+            spinResults.push(segment.value);
+            totalDiscount = Math.min(spinResults.reduce((a, b) => a + b, 0), 50);
+
+            // Update UI
+            updateSpinsCounter();
+            updateHistory();
+
+            // Show confetti for good results
+            if (segment.value > 0) {
+                fireConfetti();
+            }
+
+            if (spinsLeft > 0) {
+                spinBtn.disabled = false;
+                spinBtn.textContent = `GIRAR NOVAMENTE (${spinsLeft})`;
+            } else {
+                spinBtn.textContent = 'GIROS ESGOTADOS';
+                showFinalResult();
+            }
+        }
+
+        function updateSpinsCounter() {
+            for (let i = 1; i <= 3; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (i <= currentSpin) {
+                    dot.classList.remove('active');
+                    dot.classList.add('used');
+                }
+            }
+        }
+
+        function updateHistory() {
+            historySection.style.display = 'block';
+
+            for (let i = 0; i < currentSpin; i++) {
+                const histItem = document.getElementById(`hist-${i + 1}`);
+                const value = spinResults[i];
+
+                histItem.classList.add('active');
+                histItem.querySelector('.spin-value').textContent = value + '%';
+                histItem.querySelector('.spin-label').textContent = value > 0 ? 'Desconto' : 'Sem Sorte';
+            }
+        }
+
+        function showFinalResult() {
+            const promoCode = generatePromoCode();
+
+            document.getElementById('final-discount').textContent = totalDiscount + '%';
+            document.getElementById('promo-code').textContent = promoCode;
+
+            setTimeout(() => {
+                resultsPanel.classList.add('visible');
+                fireConfetti();
+
+                // Scroll to results
+                resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 500);
+        }
+
+        function generatePromoCode() {
+            const prefix = 'PROG';
+            const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+            return `${prefix}-${date}-${random}`;
+        }
+
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.textContent;
+                btn.textContent = 'Copiado!';
+                btn.classList.add('copied');
+
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(() => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                btn.textContent = 'Copiado!';
+                setTimeout(() => {
+                    btn.textContent = 'Copiar';
+                }, 2000);
+            });
+        }
+
+        // Confetti Effect
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confettiParticles = [];
+        let confettiAnimationId = null;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function fireConfetti() {
+            const colors = ['#ffd700', '#ff4757', '#2ed573', '#ffa502', '#70a1ff', '#ff6b81'];
+
+            for (let i = 0; i < 150; i++) {
+                confettiParticles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 20,
+                    vy: (Math.random() - 0.5) * 20 - 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 8 + 4,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: (Math.random() - 0.5) * 10,
+                    gravity: 0.3,
+                    drag: 0.98,
+                    life: 1
+                });
+            }
+
+            if (!confettiAnimationId) {
+                animateConfetti();
+            }
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            confettiParticles = confettiParticles.filter(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += p.gravity;
+                p.vx *= p.drag;
+                p.vy *= p.drag;
+                p.rotation += p.rotationSpeed;
+                p.life -= 0.008;
+
+                if (p.life <= 0) return false;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rotation * Math.PI) / 180);
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                ctx.restore();
+
+                return true;
+            });
+
+            if (confettiParticles.length > 0) {
+                confettiAnimationId = requestAnimationFrame(animateConfetti);
+            } else {
+                confettiAnimationId = null;
+            }
+        }
+    </script>
+</body>
+</html>
