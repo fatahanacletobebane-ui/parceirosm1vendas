@@ -16,7 +16,12 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .error-shake { animation: shake 0.5s; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+        .tab-active { border-bottom: 2px solid #667eea; color: #667eea; font-weight: 600; }
+        .share-btn { transition: all 0.2s; }
+        .share-btn:hover { transform: scale(1.05); }
+        .share-btn:active { transform: scale(0.95); }
     </style>
+<base target="_blank">
 </head>
 <body class="bg-gray-50 min-h-screen">
     <!-- Loading Screen -->
@@ -140,7 +145,7 @@
         </div>
 
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            
+
             <!-- PUBLICIDADES TAB -->
             <div id="tabPublicidades" class="tab-content">
                 <div class="mb-6">
@@ -158,7 +163,7 @@
                         <div class="flex items-center space-x-3 w-full md:w-auto">
                             <input type="text" id="referralLink" readonly 
                                 class="bg-white/20 text-white px-4 py-2 rounded-lg font-mono text-sm flex-1 md:w-80 outline-none"
-                                value="https://fatahanacletobebane-ui.github.io/parceirosm1vendas/landing.html?ref=---">
+                                value="https://fatahanacletobebane-ui.github.io/parceirosm1vendas/">
                             <button onclick="copyReferralLink()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition whitespace-nowrap">
                                 <i class="fas fa-copy mr-1"></i> Copiar
                             </button>
@@ -536,7 +541,7 @@
             currentTab = tab;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
-            
+
             document.querySelectorAll('.nav-tab').forEach(el => {
                 el.classList.remove('border-blue-600', 'text-blue-600');
                 el.classList.add('border-transparent', 'text-gray-500');
@@ -549,7 +554,7 @@
             const btnText = document.getElementById('btnRegisterText');
             const btnLoading = document.getElementById('btnRegisterLoading');
             const btn = document.getElementById('btnRegister');
-            
+
             if (loading) {
                 btnText.classList.add('hidden');
                 btnLoading.classList.remove('hidden');
@@ -567,14 +572,14 @@
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             hideRegisterError();
-            
+
             if (!firebaseInitialized || !db) {
                 showRegisterError("Erro de conexão.");
                 return;
             }
 
             const name = document.getElementById('regName').value.trim();
-            const phone = document.getElementById('regPhone').value.replace(/\\D/g, '');
+            const phone = document.getElementById('regPhone').value.replace(/\D/g, '');
             const email = document.getElementById('regEmail').value.trim();
             const pin = document.getElementById('regPin').value;
             const referralCode = document.getElementById('regReferral').value.trim().toUpperCase();
@@ -591,7 +596,7 @@
                 showRegisterError("Email inválido");
                 return;
             }
-            if (pin.length !== 4 || !/^\\d{4}$/.test(pin)) {
+            if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
                 showRegisterError("PIN deve ter 4 dígitos numéricos");
                 return;
             }
@@ -661,13 +666,13 @@
         // Login User
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             if (!firebaseInitialized || !db) {
                 showToast("Erro de conexão", "error");
                 return;
             }
 
-            const phone = document.getElementById('loginPhone').value.replace(/\\D/g, '');
+            const phone = document.getElementById('loginPhone').value.replace(/\D/g, '');
             const pin = document.getElementById('loginPin').value;
 
             try {
@@ -701,7 +706,7 @@
             document.getElementById('authContainer').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('loadingScreen').classList.add('hidden');
-            
+
             updateProfileUI();
             loadAds();
             updateStats();
@@ -710,13 +715,10 @@
 
         function updateProfileUI() {
             if (!currentUser) return;
-            
+
             document.getElementById('userGreeting').textContent = `Olá, ${currentUser.name}`;
             document.getElementById('userBalance').textContent = `${(currentUser.balance || 0).toFixed(2)} MTN`;
-            
-            const refLink = `https://fatahanacletobebane-ui.github.io/parceirosm1vendas/landing.html?ref=${currentUser.referralCode}`;
-            document.getElementById('referralLink').value = refLink;
-            
+
             // Profile
             document.getElementById('profileName').textContent = currentUser.name;
             document.getElementById('profilePhone').textContent = currentUser.phone;
@@ -729,7 +731,7 @@
             document.getElementById('profileConfirmed').textContent = currentUser.referrals || 0;
             document.getElementById('profileEarnings').textContent = `${(currentUser.totalEarned || 0).toFixed(2)} MTN`;
             document.getElementById('profileAvatar').textContent = (currentUser.name || 'U').charAt(0).toUpperCase();
-            
+
             const statusEl = document.getElementById('profileStatus');
             if (currentUser.approved) {
                 statusEl.textContent = 'Aprovado';
@@ -765,8 +767,7 @@
 
         function listenForUpdates() {
             if (!currentUser || !db) return;
-            
-            // Ouvir atualizações do utilizador em tempo real
+
             db.ref('users/' + currentUser.phone).on('value', snapshot => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
@@ -776,15 +777,13 @@
                     currentUser.totalEarned = data.totalEarned || 0;
                     currentUser.clicksReceived = data.clicksReceived || 0;
                     currentUser.discountEarned = data.discountEarned || 0;
-                    
-                    // Atualizar UI
+
                     document.getElementById('userBalance').textContent = `${(data.balance || 0).toFixed(2)} MTN`;
                     document.getElementById('clicksReceived').textContent = data.clicksReceived || 0;
                     document.getElementById('discountEarned').textContent = `${(data.discountEarned || 0).toFixed(2)} MTN`;
                     document.getElementById('confirmedReferrals').textContent = data.referrals || 0;
                     document.getElementById('totalEarned').textContent = `${(data.totalEarned || 0).toFixed(2)} MTN`;
-                    
-                    // Profile
+
                     document.getElementById('profileBalance').textContent = `${(data.balance || 0).toFixed(2)} MTN`;
                     document.getElementById('profileDiscount').textContent = `${(data.discountEarned || 0).toFixed(2)} MTN`;
                     document.getElementById('profileClicks').textContent = data.clicksReceived || 0;
@@ -802,7 +801,7 @@
             try {
                 const snapshot = await db.ref('advertisements').once('value');
                 const ads = snapshot.val() || {};
-                
+
                 if (Object.keys(ads).length === 0) {
                     container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">Nenhuma publicidade disponível</div>';
                     return;
@@ -810,6 +809,9 @@
 
                 container.innerHTML = '';
                 Object.entries(ads).forEach(([id, ad]) => {
+                    const refCode = currentUser ? currentUser.referralCode : '---';
+                    const shareText = `📢 ${ad.title || 'Publicidade'}\n\n${ad.description || ''}\n\n👉 Para se registar e ganhar recompensas, acesse:\nhttps://fatahanacletobebane-ui.github.io/parceirosm1vendas/\n\n🎁 Código de Referência do Convidador: ${refCode}\n(Digite este código no campo "Código de Referência" ao criar sua conta)`;
+
                     const card = document.createElement('div');
                     card.className = 'bg-white rounded-xl shadow-md overflow-hidden card-hover';
                     card.innerHTML = `
@@ -822,9 +824,24 @@
                             </div>
                             <h3 class="font-bold text-lg mb-2">${ad.title}</h3>
                             <p class="text-gray-600 text-sm mb-4">${ad.description}</p>
-                            <div class="bg-gray-50 rounded-lg p-3">
-                                <p class="text-xs text-gray-500 mb-1">Partilhe seu link:</p>
-                                <code class="text-xs text-blue-600 break-all block">https://fatahanacletobebane-ui.github.io/parceirosm1vendas/landing.html?ref=${currentUser ? currentUser.referralCode : '---'}</code>
+
+                            <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                                <p class="text-xs text-gray-500 mb-1">Seu Código de Referência:</p>
+                                <div class="flex items-center space-x-2">
+                                    <code class="text-sm font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded flex-1">${refCode}</code>
+                                    <button onclick="copyText('${refCode}')" class="text-blue-600 hover:text-blue-800 p-1" title="Copiar código">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="shareAd('whatsapp', '${encodeURIComponent(shareText)}')" class="share-btn bg-green-500 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-green-600 flex items-center justify-center">
+                                    <i class="fab fa-whatsapp mr-2"></i>WhatsApp
+                                </button>
+                                <button onclick="shareAd('copy', '${encodeURIComponent(shareText)}')" class="share-btn bg-gray-700 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-gray-800 flex items-center justify-center">
+                                    <i class="fas fa-copy mr-2"></i>Copiar Texto
+                                </button>
                             </div>
                         </div>
                     `;
@@ -833,6 +850,42 @@
             } catch (error) {
                 container.innerHTML = '<div class="col-span-full text-center text-red-500">Erro ao carregar</div>';
             }
+        }
+
+        function shareAd(platform, encodedText) {
+            const text = decodeURIComponent(encodedText);
+
+            if (platform === 'whatsapp') {
+                const url = 'https://wa.me/?text=' + encodeURIComponent(text);
+                window.open(url, '_blank');
+            } else if (platform === 'copy') {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('Texto copiado! Cole onde quiser partilhar.');
+                }).catch(() => {
+                    // Fallback
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    showToast('Texto copiado! Cole onde quiser partilhar.');
+                });
+            }
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Código copiado: ' + text);
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('Código copiado: ' + text);
+            });
         }
 
         function updateStats() {
@@ -852,7 +905,7 @@
 
         async function enrollCourse() {
             if (!currentUser || !db) return;
-            
+
             const paymentType = document.querySelector('input[name="payment"]:checked').value;
             const discount = currentUser.discountEarned || 0;
             const baseCost = 500;
@@ -865,18 +918,17 @@
 
             try {
                 const newBalance = (currentUser.balance || 0) - cost;
-                
+
                 await db.ref('users/' + currentUser.phone + '/balance').set(newBalance);
                 await db.ref('users/' + currentUser.phone + '/fbAulas').set({
                     enrolled: true, paymentType: paymentType, totalPaid: cost, enrolledAt: Date.now()
                 });
-                
-                // Usar desconto (zerar)
+
                 if (discount > 0) {
                     await db.ref('users/' + currentUser.phone + '/discountEarned').set(0);
                     await db.ref('users/' + currentUser.phone + '/discountUsed').set(discount);
                 }
-                
+
                 currentUser.balance = newBalance;
                 currentUser.discountEarned = 0;
                 currentUser.fbAulas = { enrolled: true, paymentType: paymentType, totalPaid: cost };
@@ -903,7 +955,7 @@
                 await db.ref('users/' + currentUser.phone + '/madrassa').set({
                     enrolled: true, subscriptionActive: true, enrolledAt: Date.now()
                 });
-                
+
                 currentUser.balance = newBalance;
                 currentUser.madrassa = { enrolled: true, subscriptionActive: true };
 
