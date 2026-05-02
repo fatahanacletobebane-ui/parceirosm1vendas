@@ -3,494 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Publicidades & Cursos - Plataforma Completa</title>
+    <title>Admin - Consola de Gestão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        .share-btn { transition: all 0.2s; }
-        .share-btn:hover { transform: scale(1.05); }
-        .tab-active { border-bottom: 3px solid #667eea; color: #667eea; font-weight: 600; }
-        .notification { animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .loading { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal.active { display: flex; align-items: center; justify-content: center; }
-        .balance-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        .pending-row { animation: highlight 2s ease; }
+        @keyframes highlight { from { background-color: #fef3c7; } to { background-color: transparent; } }
+        .stats-card { transition: transform 0.2s; }
+        .stats-card:hover { transform: translateY(-2px); }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Loading Screen -->
-    <div id="loadingScreen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
-        <div class="loading mb-4"></div>
-        <p class="text-gray-600">Carregando plataforma...</p>
-    </div>
-
-    <!-- Auth Container -->
-    <div id="authContainer" class="hidden min-h-screen gradient-bg flex items-center justify-center p-4">
+<body class="bg-gray-100">
+    <!-- Login Screen -->
+    <div id="adminLogin" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
             <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-bullhorn text-white text-2xl"></i>
+                <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-shield-alt text-white text-2xl"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-800">Bem-vindo</h1>
-                <p class="text-gray-500 text-sm mt-1">Partilhe publicidades e ganhe recompensas</p>
+                <h1 class="text-2xl font-bold text-gray-800">Consola de Administração</h1>
+                <p class="text-gray-500 text-sm">Acesso restrito a administradores</p>
             </div>
-
-            <!-- Tabs -->
-            <div class="flex mb-6 border-b">
-                <button onclick="switchAuthTab('login')" id="tabLogin" class="flex-1 py-3 text-center tab-active">Entrar</button>
-                <button onclick="switchAuthTab('register')" id="tabRegister" class="flex-1 py-3 text-center text-gray-500">Registar</button>
-            </div>
-
-            <!-- Login Form -->
-            <form id="loginForm" class="space-y-4">
+            <form id="adminLoginForm" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                    <input type="tel" id="loginPhone" placeholder="Ex: 840000000" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Senha de Admin</label>
+                    <input type="password" id="adminPassword" placeholder="Digite a senha" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-800 outline-none" required>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">PIN (4 dígitos)</label>
-                    <input type="password" id="loginPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required>
-                </div>
-                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition">
-                    <i class="fas fa-sign-in-alt mr-2"></i>Entrar
+                <div id="adminLoginError" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
+                <button type="submit" class="w-full bg-gray-800 text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition">
+                    <i class="fas fa-lock mr-2"></i>Entrar
                 </button>
-                <div class="text-center mt-4">
-                    <a href="https://wa.me/258860407269?text=Olá! Não consigo registar-me na plataforma. Preciso de ajuda." 
-                       target="_blank" 
-                       class="inline-flex items-center text-green-600 hover:text-green-700 text-sm">
-                        <i class="fab fa-whatsapp mr-2 text-lg"></i>
-                        Precisa de ajuda? Contacte-nos
-                    </a>
-                </div>
-            </form>
-
-            <!-- Register Form -->
-            <form id="registerForm" class="hidden space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
-                    <input type="text" id="regName" placeholder="Seu nome" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                    <input type="tel" id="regPhone" placeholder="Ex: 840000000" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" id="regEmail" placeholder="seu@email.com" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">PIN (4 dígitos)</label>
-                    <input type="password" id="regPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Código de Referência (opcional)</label>
-                    <input type="text" id="regReferral" placeholder="Código do convidador" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-teal-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition">
-                    <i class="fas fa-user-plus mr-2"></i>Criar Conta
-                </button>
-                <p class="text-xs text-gray-500 text-center mt-2">
-                    Ao registar-se, aceita os termos da plataforma
-                </p>
             </form>
         </div>
     </div>
 
-    <!-- Main App -->
-    <div id="mainApp" class="hidden">
-        <!-- Header -->
-        <header class="bg-white shadow-sm sticky top-0 z-40">
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="hidden">
+        <header class="bg-gray-900 text-white shadow-lg">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     <div class="flex items-center">
-                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-bullhorn text-white"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-xl font-bold text-gray-800">Publicidades & Cursos</h1>
-                            <p class="text-xs text-gray-500" id="userGreeting">Olá, Utilizador</p>
-                        </div>
+                        <i class="fas fa-shield-alt text-xl mr-3"></i>
+                        <h1 class="text-xl font-bold">Painel de Administração</h1>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <div class="hidden md:flex items-center bg-blue-50 px-4 py-2 rounded-full balance-pulse">
-                            <i class="fas fa-wallet text-blue-600 mr-2"></i>
-                            <span class="font-semibold text-blue-800" id="userBalance">0.00 MTN</span>
-                        </div>
-                        <div class="relative">
-                            <button onclick="toggleNotifications()" class="p-2 text-gray-600 hover:text-gray-800 relative">
-                                <i class="fas fa-bell text-xl"></i>
-                                <span id="notifBadge" class="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hidden">0</span>
-                            </button>
-                            <div id="notifPanel" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border z-50 max-h-96 overflow-y-auto">
-                                <div class="p-4 border-b">
-                                    <h3 class="font-semibold">Notificações</h3>
-                                </div>
-                                <div id="notifList" class="divide-y">
-                                    <p class="p-4 text-gray-500 text-sm text-center">Sem notificações</p>
-                                </div>
-                            </div>
-                        </div>
-                        <button onclick="logout()" class="p-2 text-gray-600 hover:text-red-600">
-                            <i class="fas fa-sign-out-alt text-xl"></i>
+                        <span id="adminDate" class="text-gray-400 text-sm"></span>
+                        <button onclick="adminLogout()" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-sign-out-alt"></i> Sair
                         </button>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- Navigation Tabs -->
-        <div class="bg-white border-b">
-            <div class="max-w-7xl mx-auto px-4">
-                <nav class="flex space-x-8 overflow-x-auto">
-                    <button onclick="switchMainTab('publicidades')" id="navPublicidades" class="nav-tab py-4 px-1 border-b-2 border-blue-600 text-blue-600 font-medium whitespace-nowrap">
+        <div class="flex">
+            <aside class="w-64 bg-white shadow-md min-h-screen">
+                <nav class="p-4 space-y-2">
+                    <button onclick="switchAdminTab('users')" id="adminTabUsers" class="w-full text-left px-4 py-3 rounded-lg bg-gray-100 text-gray-900 font-medium">
+                        <i class="fas fa-users mr-2"></i>Utilizadores
+                    </button>
+                    <button onclick="switchAdminTab('pending')" id="adminTabPending" class="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-600">
+                        <i class="fas fa-clock mr-2"></i>Pendentes
+                        <span id="pendingCount" class="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full hidden">0</span>
+                    </button>
+                    <button onclick="switchAdminTab('shares')" id="adminTabShares" class="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-600">
+                        <i class="fas fa-share-alt mr-2"></i>Partilhas
+                    </button>
+                    <button onclick="switchAdminTab('referrals')" id="adminTabReferrals" class="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-600">
+                        <i class="fas fa-user-plus mr-2"></i>Referências
+                    </button>
+                    <button onclick="switchAdminTab('ads')" id="adminTabAds" class="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-600">
                         <i class="fas fa-ad mr-2"></i>Publicidades
                     </button>
-                    <button onclick="switchMainTab('cursos')" id="navCursos" class="nav-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                        <i class="fas fa-graduation-cap mr-2"></i>FB Aulas Online
-                    </button>
-                    <button onclick="switchMainTab('madrassa')" id="navMadrassa" class="nav-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                        <i class="fas fa-mosque mr-2"></i>Madrassa Online
-                    </button>
-                    <button onclick="switchMainTab('perfil')" id="navPerfil" class="nav-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                        <i class="fas fa-user mr-2"></i>Perfil
+                    <button onclick="switchAdminTab('transactions')" id="adminTabTransactions" class="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-600">
+                        <i class="fas fa-exchange-alt mr-2"></i>Transações
                     </button>
                 </nav>
-            </div>
-        </div>
+            </aside>
 
-        <!-- Content Area -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            
-            <!-- PUBLICIDADES TAB -->
-            <div id="tabPublicidades" class="tab-content">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Partilhe Publicidades</h2>
-                    <p class="text-gray-600">Partilhe e ganhe <span class="font-semibold text-blue-600">0.75 MTN</span> de desconto por cada partilha</p>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white rounded-xl p-6 shadow-md card-hover">
-                        <div class="flex items-center justify-between">
+            <main class="flex-1 p-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl p-6 shadow-sm stats-card border-l-4 border-blue-500">
+                        <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-sm text-gray-500">Partilhas Hoje</p>
-                                <p class="text-2xl font-bold text-gray-800" id="sharesToday">0</p>
+                                <p class="text-sm text-gray-500">Total Utilizadores</p>
+                                <p class="text-2xl font-bold" id="statTotalUsers">0</p>
                             </div>
-                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-share-alt text-blue-600 text-xl"></i>
-                            </div>
+                            <i class="fas fa-users text-blue-500 text-2xl"></i>
                         </div>
                     </div>
-                    <div class="bg-white rounded-xl p-6 shadow-md card-hover">
-                        <div class="flex items-center justify-between">
+                    <div class="bg-white rounded-xl p-6 shadow-sm stats-card border-l-4 border-yellow-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500">Pendentes</p>
+                                <p class="text-2xl font-bold" id="statPendingUsers">0</p>
+                            </div>
+                            <i class="fas fa-clock text-yellow-500 text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-sm stats-card border-l-4 border-green-500">
+                        <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-sm text-gray-500">Total Partilhas</p>
-                                <p class="text-2xl font-bold text-gray-800" id="totalShares">0</p>
+                                <p class="text-2xl font-bold" id="statTotalShares">0</p>
                             </div>
-                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-chart-line text-green-600 text-xl"></i>
-                            </div>
+                            <i class="fas fa-share-alt text-green-500 text-2xl"></i>
                         </div>
                     </div>
-                    <div class="bg-white rounded-xl p-6 shadow-md card-hover">
-                        <div class="flex items-center justify-between">
+                    <div class="bg-white rounded-xl p-6 shadow-sm stats-card border-l-4 border-purple-500">
+                        <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-sm text-gray-500">Desconto Acumulado</p>
-                                <p class="text-2xl font-bold text-blue-600" id="discountEarned">0.00 MTN</p>
+                                <p class="text-sm text-gray-500">Total em Comissões</p>
+                                <p class="text-2xl font-bold" id="statTotalCommissions">0 MTN</p>
                             </div>
-                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-tag text-purple-600 text-xl"></i>
-                            </div>
+                            <i class="fas fa-money-bill-wave text-purple-500 text-2xl"></i>
                         </div>
                     </div>
                 </div>
 
-                <!-- Referral Info -->
-                <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white mb-8">
-                    <div class="flex flex-col md:flex-row justify-between items-center">
-                        <div class="mb-4 md:mb-0">
-                            <h3 class="text-lg font-semibold mb-1">Seu Código de Referência</h3>
-                            <p class="text-blue-100 text-sm">Convide amigos e ganhe 25 MTN por cada inscrição</p>
+                <div id="adminContentUsers" class="admin-content">
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-6 border-b flex justify-between items-center">
+                            <h2 class="text-lg font-bold">Todos os Utilizadores</h2>
+                            <input type="text" id="searchUsers" placeholder="Pesquisar..." class="px-4 py-2 border rounded-lg text-sm" onkeyup="filterUsers()">
                         </div>
-                        <div class="flex items-center space-x-3">
-                            <code id="referralCode" class="bg-white/20 px-4 py-2 rounded-lg font-mono text-lg">---</code>
-                            <button onclick="copyReferral()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition">
-                                <i class="fas fa-copy mr-1"></i> Copiar
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Telefone</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Saldo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Referências</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="adminContentPending" class="admin-content hidden">
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-6 border-b">
+                            <h2 class="text-lg font-bold">Utilizadores Pendentes de Aprovação</h2>
+                        </div>
+                        <div id="pendingUsersList" class="divide-y divide-gray-100"></div>
+                    </div>
+                </div>
+
+                <div id="adminContentShares" class="admin-content hidden">
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-6 border-b flex justify-between items-center">
+                            <h2 class="text-lg font-bold">Partilhas Pendentes</h2>
+                            <button onclick="approveAllShares()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700">
+                                <i class="fas fa-check-double mr-1"></i>Aprovar Todas
                             </button>
                         </div>
+                        <div id="pendingSharesList" class="divide-y divide-gray-100"></div>
                     </div>
                 </div>
 
-                <!-- Ads Grid -->
-                <div id="adsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Ads loaded dynamically -->
-                </div>
-            </div>
-
-            <!-- CURSOS TAB -->
-            <div id="tabCursos" class="tab-content hidden">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">FB Aulas Online</h2>
-                    <p class="text-gray-600">Curso de Programação - Duração: 3 meses</p>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-                    <div class="h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 flex items-center justify-center">
-                        <div class="text-center text-white">
-                            <i class="fas fa-code text-6xl mb-4"></i>
-                            <h3 class="text-3xl font-bold">Programação Web & Mobile</h3>
-                            <p class="text-blue-100">Aprenda a criar Websites e Aplicativos</p>
+                <div id="adminContentReferrals" class="admin-content hidden">
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-6 border-b">
+                            <h2 class="text-lg font-bold">Referências Pendentes</h2>
                         </div>
+                        <div id="pendingReferralsList" class="divide-y divide-gray-100"></div>
                     </div>
-                    <div class="p-8">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                            <div class="text-center">
-                                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <i class="fas fa-clock text-blue-600 text-2xl"></i>
+                </div>
+
+                <div id="adminContentAds" class="admin-content hidden">
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+                        <div class="p-6 border-b">
+                            <h2 class="text-lg font-bold">Adicionar Nova Publicidade</h2>
+                        </div>
+                        <div class="p-6">
+                            <form id="addAdForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Título</label>
+                                    <input type="text" id="adTitle" class="w-full px-4 py-2 border rounded-lg" required>
                                 </div>
-                                <h4 class="font-semibold">3 Meses</h4>
-                                <p class="text-sm text-gray-500">Duração do curso</p>
-                            </div>
-                            <div class="text-center">
-                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <i class="fas fa-money-bill-wave text-green-600 text-2xl"></i>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                                    <textarea id="adDescription" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
                                 </div>
-                                <h4 class="font-semibold">500 MTN</h4>
-                                <p class="text-sm text-gray-500">Valor total</p>
-                            </div>
-                            <div class="text-center">
-                                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <i class="fas fa-certificate text-purple-600 text-2xl"></i>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                                    <select id="adCategory" class="w-full px-4 py-2 border rounded-lg">
+                                        <option value="Geral">Geral</option>
+                                        <option value="Tecnologia">Tecnologia</option>
+                                        <option value="Educação">Educação</option>
+                                        <option value="Negócios">Negócios</option>
+                                        <option value="Saúde">Saúde</option>
+                                    </select>
                                 </div>
-                                <h4 class="font-semibold">Certificado</h4>
-                                <p class="text-sm text-gray-500">Ao completar</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-50 rounded-xl p-6 mb-6">
-                            <h4 class="font-semibold mb-4">Opções de Pagamento:</h4>
-                            <div class="space-y-3">
-                                <div class="flex items-center justify-between bg-white p-4 rounded-lg border">
-                                    <div class="flex items-center">
-                                        <input type="radio" name="payment" value="full" id="payFull" class="mr-3" checked>
-                                        <label for="payFull" class="font-medium">Pagamento Único</label>
-                                    </div>
-                                    <span class="font-bold text-blue-600">500 MTN</span>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">URL da Imagem (opcional)</label>
+                                    <input type="url" id="adImage" placeholder="https://..." class="w-full px-4 py-2 border rounded-lg">
                                 </div>
-                                <div class="flex items-center justify-between bg-white p-4 rounded-lg border">
-                                    <div class="flex items-center">
-                                        <input type="radio" name="payment" value="installment" id="payInstallment" class="mr-3">
-                                        <label for="payInstallment" class="font-medium">Parcelado (3x)</label>
-                                    </div>
-                                    <span class="text-gray-600">200 + 150 + 150 MTN</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="courseStatus" class="mb-6">
-                            <button onclick="enrollCourse()" id="btnEnroll" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 transition">
-                                <i class="fas fa-rocket mr-2"></i>Inscrever-se Agora
-                            </button>
-                        </div>
-
-                        <div class="border-t pt-6">
-                            <h4 class="font-semibold mb-3">O que vai aprender:</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-2"></i> HTML5 & CSS3</div>
-                                <div class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-2"></i> JavaScript Moderno</div>
-                                <div class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-2"></i> Firebase Backend</div>
-                                <div class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-2"></i> React / Vue.js</div>
-                                <div class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-2"></i> APIs RESTful</div>
-                                <div class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-2"></i> Publicação de Apps</div>
-                            </div>
+                                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                                    <i class="fas fa-plus mr-2"></i>Adicionar Publicidade
+                                </button>
+                            </form>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- MADRASSA TAB -->
-            <div id="tabMadrassa" class="tab-content hidden">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Madrassa Online</h2>
-                    <p class="text-gray-600">Educação Islâmica para todos</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-white rounded-xl p-6 shadow-md">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                                <i class="fas fa-book-open text-green-600 text-xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-lg">Inscrição</h3>
-                                <p class="text-gray-500">Taxa única de inscrição</p>
-                            </div>
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-6 border-b">
+                            <h2 class="text-lg font-bold">Publicidades Existentes</h2>
                         </div>
-                        <p class="text-3xl font-bold text-green-600 mb-2">150 MTN</p>
-                        <button onclick="enrollMadrassa()" id="btnMadrassaEnroll" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition">
-                            Inscrever-se
-                        </button>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 shadow-md">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mr-3">
-                                <i class="fas fa-calendar-alt text-teal-600 text-xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-lg">Mensalidade</h3>
-                                <p class="text-gray-500">Pagamento mensal</p>
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold text-teal-600 mb-2">100 MTN</p>
-                        <p class="text-sm text-gray-500">Renovação automática mensal</p>
+                        <div id="adsList" class="divide-y divide-gray-100"></div>
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-green-600 to-teal-600 rounded-xl p-6 text-white mb-8">
-                    <div class="flex flex-col md:flex-row justify-between items-center">
-                        <div class="mb-4 md:mb-0">
-                            <h3 class="text-lg font-semibold mb-1">Partilhe Madrassa Online</h3>
-                            <p class="text-green-100 text-sm">Ganhe 0.5 MTN de desconto por partilha + 10 MTN por inscrição</p>
+                <div id="adminContentTransactions" class="admin-content hidden">
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-6 border-b">
+                            <h2 class="text-lg font-bold">Histórico de Transações</h2>
                         </div>
-                        <div class="flex items-center space-x-3">
-                            <code id="madrassaRefCode" class="bg-white/20 px-4 py-2 rounded-lg font-mono text-lg">---</code>
-                            <button onclick="copyMadrassaRef()" class="bg-white text-green-600 px-4 py-2 rounded-lg font-medium hover:bg-green-50 transition">
-                                <i class="fas fa-copy mr-1"></i> Copiar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white rounded-xl p-6 shadow-md card-hover">
-                        <i class="fas fa-language text-3xl text-blue-500 mb-3"></i>
-                        <h3 class="font-semibold mb-2">Alfabeto Árabe</h3>
-                        <p class="text-gray-500 text-sm">Aprenda as letras árabes desde o início</p>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 shadow-md card-hover">
-                        <i class="fas fa-quran text-3xl text-green-500 mb-3"></i>
-                        <h3 class="font-semibold mb-2">Estudos do Alcorão</h3>
-                        <p class="text-gray-500 text-sm">Surat Al-Fatiha e mais</p>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 shadow-md card-hover">
-                        <i class="fas fa-pray text-3xl text-purple-500 mb-3"></i>
-                        <h3 class="font-semibold mb-2">Duãs e Orações</h3>
-                        <p class="text-gray-500 text-sm">Orações diárias e rituais</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PERFIL TAB -->
-            <div id="tabPerfil" class="tab-content hidden">
-                <div class="max-w-2xl mx-auto">
-                    <div class="bg-white rounded-2xl shadow-lg p-8 mb-6">
-                        <div class="flex items-center mb-6">
-                            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mr-4" id="profileAvatar">
-                                U
-                            </div>
-                            <div>
-                                <h2 class="text-2xl font-bold" id="profileName">Utilizador</h2>
-                                <p class="text-gray-500" id="profilePhone">---</p>
-                                <span class="inline-block bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full mt-1" id="profileStatus">Pendente</span>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 mb-6">
-                            <div class="bg-gray-50 p-4 rounded-xl">
-                                <p class="text-sm text-gray-500">Saldo Disponível</p>
-                                <p class="text-2xl font-bold text-green-600" id="profileBalance">0.00 MTN</p>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-xl">
-                                <p class="text-sm text-gray-500">Saldo de Vendedor</p>
-                                <p class="text-2xl font-bold text-blue-600" id="profileSellerBalance">0.00 MTN</p>
-                            </div>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center py-3 border-b">
-                                <span class="text-gray-600">Email</span>
-                                <span class="font-medium" id="profileEmail">---</span>
-                            </div>
-                            <div class="flex justify-between items-center py-3 border-b">
-                                <span class="text-gray-600">Código UID</span>
-                                <span class="font-mono text-sm bg-gray-100 px-2 py-1 rounded" id="profileUid">---</span>
-                            </div>
-                            <div class="flex justify-between items-center py-3 border-b">
-                                <span class="text-gray-600">Código de Referência</span>
-                                <span class="font-mono text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded" id="profileRefCode">---</span>
-                            </div>
-                            <div class="flex justify-between items-center py-3 border-b">
-                                <span class="text-gray-600">Membros Convocados</span>
-                                <span class="font-medium" id="profileReferrals">0</span>
-                            </div>
-                            <div class="flex justify-between items-center py-3">
-                                <span class="text-gray-600">Total Ganho em Comissões</span>
-                                <span class="font-bold text-green-600" id="profileEarnings">0.00 MTN</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-2xl shadow-lg p-6">
-                        <h3 class="font-bold mb-4">Histórico de Transações</h3>
-                        <div id="transactionsList" class="space-y-3">
-                            <p class="text-gray-500 text-center py-4">Sem transações registadas</p>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Utilizador</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionsTableBody" class="divide-y divide-gray-100"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Share Modal -->
-    <div id="shareModal" class="modal">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <i class="fas fa-share-alt text-blue-600 text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-bold">Partilhar Publicidade</h3>
-                <p class="text-gray-500 text-sm mt-1">Escolha onde partilhar</p>
-            </div>
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <button onclick="shareTo('whatsapp')" class="share-btn bg-green-500 text-white py-3 rounded-lg flex items-center justify-center">
-                    <i class="fab fa-whatsapp mr-2"></i> WhatsApp
-                </button>
-                <button onclick="shareTo('facebook')" class="share-btn bg-blue-600 text-white py-3 rounded-lg flex items-center justify-center">
-                    <i class="fab fa-facebook mr-2"></i> Facebook
-                </button>
-                <button onclick="shareTo('twitter')" class="share-btn bg-sky-500 text-white py-3 rounded-lg flex items-center justify-center">
-                    <i class="fab fa-twitter mr-2"></i> Twitter
-                </button>
-                <button onclick="shareTo('copy')" class="share-btn bg-gray-600 text-white py-3 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-link mr-2"></i> Copiar Link
-                </button>
-            </div>
-            <button onclick="closeShareModal()" class="w-full border border-gray-300 py-3 rounded-lg text-gray-600 hover:bg-gray-50">
-                Cancelar
-            </button>
+            </main>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
-        <span id="toastMessage">Mensagem</span>
+    <div id="adminToast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <span id="adminToastMsg">Mensagem</span>
     </div>
 
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <script>
-        // Firebase Config
+        // ============================================
+        // CORREÇÃO: URL do Firebase sem espaço
+        // ============================================
         const firebaseConfig = {
             apiKey: "AIzaSyAizJfCjfrJlA_tgPNZolcpdWW5udlZHcg",
             authDomain: "islam-78889.firebaseapp.com",
@@ -502,522 +267,515 @@
             measurementId: "G-K20W2B921R"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // Global State
-        let currentUser = null;
-        let currentAd = null;
-        let currentTab = 'publicidades';
-
-        // Generate UID
-        function generateUID() {
-            return 'uid_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now().toString(36);
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            console.log("Admin Firebase OK");
+        } catch (e) {
+            console.error("Erro Firebase Admin:", e);
         }
 
-        // Generate Referral Code
-        function generateReferralCode(phone) {
-            return 'REF' + phone.slice(-6) + Math.random().toString(36).substr(2, 4).toUpperCase();
-        }
+        const ADMIN_PASSWORD = 'admin123';
 
-        // Show Toast
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').textContent = message;
+        function showAdminToast(msg, type = 'success') {
+            const toast = document.getElementById('adminToast');
+            document.getElementById('adminToastMsg').textContent = msg;
+            if (type === 'error') {
+                toast.classList.remove('bg-gray-800');
+                toast.classList.add('bg-red-600');
+            } else {
+                toast.classList.remove('bg-red-600');
+                toast.classList.add('bg-gray-800');
+            }
             toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
 
-        // Switch Auth Tab
-        function switchAuthTab(tab) {
-            document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
-            document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
-            document.getElementById('tabLogin').classList.toggle('tab-active', tab === 'login');
-            document.getElementById('tabLogin').classList.toggle('text-gray-500', tab !== 'login');
-            document.getElementById('tabRegister').classList.toggle('tab-active', tab === 'register');
-            document.getElementById('tabRegister').classList.toggle('text-gray-500', tab !== 'register');
-        }
-
-        // Switch Main Tab
-        function switchMainTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
-            
-            document.querySelectorAll('.nav-tab').forEach(el => {
-                el.classList.remove('border-blue-600', 'text-blue-600');
-                el.classList.add('border-transparent', 'text-gray-500');
-            });
-            document.getElementById('nav' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('border-blue-600', 'text-blue-600');
-            document.getElementById('nav' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('border-transparent', 'text-gray-500');
-        }
-
-        // Register User
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const name = document.getElementById('regName').value;
-            const phone = document.getElementById('regPhone').value.replace(/\D/g, '');
-            const email = document.getElementById('regEmail').value;
-            const pin = document.getElementById('regPin').value;
-            const referralCode = document.getElementById('regReferral').value.trim();
+            const pass = document.getElementById('adminPassword').value;
+            if (pass === ADMIN_PASSWORD) {
+                document.getElementById('adminLogin').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                document.getElementById('adminDate').textContent = new Date().toLocaleDateString('pt');
+                loadAllData();
+                showAdminToast('Bem-vindo à Consola de Administração');
+            } else {
+                const err = document.getElementById('adminLoginError');
+                err.textContent = 'Senha incorrecta!';
+                err.classList.remove('hidden');
+            }
+        });
 
-            if (phone.length < 9) {
-                showToast('Número de telefone inválido', 'error');
+        function adminLogout() {
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('adminLogin').classList.remove('hidden');
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('adminLoginError').classList.add('hidden');
+        }
+
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.admin-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('adminContent' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+            
+            document.querySelectorAll('aside nav button').forEach(el => {
+                el.classList.remove('bg-gray-100', 'text-gray-900');
+                el.classList.add('text-gray-600');
+            });
+            document.getElementById('adminTab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('bg-gray-100', 'text-gray-900');
+            document.getElementById('adminTab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('text-gray-600');
+        }
+
+        async function loadAllData() {
+            await Promise.all([
+                loadUsers(),
+                loadPendingUsers(),
+                loadPendingShares(),
+                loadPendingReferrals(),
+                loadAds(),
+                loadTransactions(),
+                updateStats()
+            ]);
+        }
+
+        async function updateStats() {
+            if (!db) return;
+            const usersSnap = await db.ref('users').once('value');
+            const users = usersSnap.val() || {};
+            const totalUsers = Object.keys(users).length;
+            const pendingUsers = Object.values(users).filter(u => !u.approved).length;
+
+            const sharesSnap = await db.ref('pendingShares').once('value');
+            const shares = sharesSnap.val() || {};
+            const totalShares = Object.keys(shares).length;
+
+            let totalCommissions = 0;
+            Object.values(users).forEach(u => {
+                totalCommissions += (u.totalEarned || 0);
+            });
+
+            document.getElementById('statTotalUsers').textContent = totalUsers;
+            document.getElementById('statPendingUsers').textContent = pendingUsers;
+            document.getElementById('statTotalShares').textContent = totalShares;
+            document.getElementById('statTotalCommissions').textContent = totalCommissions.toFixed(2) + ' MTN';
+
+            const pendingBadge = document.getElementById('pendingCount');
+            if (pendingUsers > 0) {
+                pendingBadge.textContent = pendingUsers;
+                pendingBadge.classList.remove('hidden');
+            } else {
+                pendingBadge.classList.add('hidden');
+            }
+        }
+
+        async function loadUsers() {
+            if (!db) return;
+            const snapshot = await db.ref('users').once('value');
+            const users = snapshot.val() || {};
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '';
+
+            Object.entries(users).forEach(([phone, user]) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3 text-sm font-bold">
+                                ${(user.name || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">${user.name || 'Sem nome'}</div>
+                                <div class="text-xs text-gray-500">${user.email || ''}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${phone}</td>
+                    <td class="px-6 py-4">
+                        <span class="font-medium text-green-600">${(user.balance || 0).toFixed(2)} MTN</span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${user.referrals || 0}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs rounded-full ${user.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                            ${user.approved ? 'Aprovado' : 'Pendente'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <button onclick="editUserBalance('${phone}')" class="text-blue-600 hover:text-blue-800 mr-2" title="Editar Saldo">
+                            <i class="fas fa-wallet"></i>
+                        </button>
+                        <button onclick="toggleUserStatus('${phone}')" class="text-${user.approved ? 'red' : 'green'}-600 hover:text-${user.approved ? 'red' : 'green'}-800" title="${user.approved ? 'Bloquear' : 'Aprovar'}">
+                            <i class="fas fa-${user.approved ? 'ban' : 'check'}"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function loadPendingUsers() {
+            if (!db) return;
+            const snapshot = await db.ref('users').once('value');
+            const users = snapshot.val() || {};
+            const container = document.getElementById('pendingUsersList');
+            container.innerHTML = '';
+
+            const pending = Object.entries(users).filter(([_, u]) => !u.approved);
+            
+            if (pending.length === 0) {
+                container.innerHTML = '<div class="p-8 text-center text-gray-500">Nenhum utilizador pendente</div>';
                 return;
             }
 
-            try {
-                const snapshot = await db.ref('users/' + phone).once('value');
-                if (snapshot.exists()) {
-                    showToast('Este telefone já está registado', 'error');
-                    return;
-                }
-
-                const uid = generateUID();
-                const userRefCode = generateReferralCode(phone);
-                const timestamp = Date.now();
-
-                const userData = {
-                    uid: uid,
-                    name: name,
-                    phone: phone,
-                    email: email,
-                    pin: pin,
-                    balance: 0,
-                    sellerBalance: 0,
-                    referralCode: userRefCode,
-                    referredBy: referralCode || null,
-                    referrals: 0,
-                    totalEarned: 0,
-                    sharesCount: 0,
-                    sharesToday: 0,
-                    lastShareDate: null,
-                    discountEarned: 0,
-                    approved: false,
-                    status: 'pending',
-                    createdAt: timestamp,
-                    fbAulas: {
-                        enrolled: false,
-                        paymentType: null,
-                        installmentsPaid: 0,
-                        totalPaid: 0,
-                        nextPaymentDate: null
-                    },
-                    madrassa: {
-                        enrolled: false,
-                        subscriptionActive: false,
-                        nextPaymentDate: null
-                    }
-                };
-
-                await db.ref('users/' + phone).set(userData);
-
-                // If has referral code, record pending referral
-                if (referralCode) {
-                    await db.ref('pendingReferrals/' + uid).set({
-                        referralCode: referralCode,
-                        phone: phone,
-                        name: name,
-                        timestamp: timestamp,
-                        approved: false,
-                        type: 'registration'
-                    });
-                }
-
-                showToast('Registo efectuado! Aguarde aprovação do administrador.');
-                switchAuthTab('login');
-            } catch (error) {
-                console.error(error);
-                showToast('Erro ao registar. Tente novamente.', 'error');
-            }
-        });
-
-        // Login User
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const phone = document.getElementById('loginPhone').value.replace(/\D/g, '');
-            const pin = document.getElementById('loginPin').value;
-
-            try {
-                const snapshot = await db.ref('users/' + phone).once('value');
-                if (!snapshot.exists()) {
-                    showToast('Utilizador não encontrado', 'error');
-                    return;
-                }
-
-                const userData = snapshot.val();
-                if (userData.pin !== pin) {
-                    showToast('PIN incorrecto', 'error');
-                    return;
-                }
-
-                if (!userData.approved) {
-                    showToast('Conta pendente de aprovação pelo administrador', 'error');
-                    return;
-                }
-
-                currentUser = { phone, ...userData };
-                localStorage.setItem('currentUserPhone', phone);
-                showToast('Login efectuado com sucesso!');
-                showMainApp();
-            } catch (error) {
-                console.error(error);
-                showToast('Erro ao iniciar sessão', 'error');
-            }
-        });
-
-        // Show Main App
-        function showMainApp() {
-            document.getElementById('authContainer').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('loadingScreen').classList.add('hidden');
-            
-            updateProfileUI();
-            loadAds();
-            updateStats();
+            pending.forEach(([phone, user]) => {
+                const item = document.createElement('div');
+                item.className = 'p-6 flex items-center justify-between hover:bg-gray-50 pending-row';
+                item.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-user-clock text-yellow-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900">${user.name || 'Sem nome'}</h4>
+                            <p class="text-sm text-gray-500">${phone} | ${user.email || ''}</p>
+                            <p class="text-xs text-gray-400 mt-1">Código Ref: ${user.referralCode || '---'}</p>
+                            ${user.referredBy ? `<p class="text-xs text-blue-500">Convidado por: ${user.referredBy}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="approveUser('${phone}')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+                            <i class="fas fa-check mr-1"></i>Aprovar
+                        </button>
+                        <button onclick="rejectUser('${phone}')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">
+                            <i class="fas fa-times mr-1"></i>Rejeitar
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
         }
 
-        // Update Profile UI
-        function updateProfileUI() {
-            if (!currentUser) return;
+        async function loadPendingShares() {
+            if (!db) return;
+            const snapshot = await db.ref('pendingShares').once('value');
+            const shares = snapshot.val() || {};
+            const container = document.getElementById('pendingSharesList');
+            container.innerHTML = '';
+
+            const pending = Object.entries(shares).filter(([_, s]) => !s.approved);
             
-            document.getElementById('userGreeting').textContent = `Olá, ${currentUser.name}`;
-            document.getElementById('userBalance').textContent = `${currentUser.balance.toFixed(2)} MTN`;
-            document.getElementById('referralCode').textContent = currentUser.referralCode;
-            document.getElementById('madrassaRefCode').textContent = currentUser.referralCode;
-            
-            // Profile tab
-            document.getElementById('profileName').textContent = currentUser.name;
-            document.getElementById('profilePhone').textContent = currentUser.phone;
-            document.getElementById('profileEmail').textContent = currentUser.email;
-            document.getElementById('profileUid').textContent = currentUser.uid;
-            document.getElementById('profileRefCode').textContent = currentUser.referralCode;
-            document.getElementById('profileBalance').textContent = `${currentUser.balance.toFixed(2)} MTN`;
-            document.getElementById('profileSellerBalance').textContent = `${(currentUser.sellerBalance || 0).toFixed(2)} MTN`;
-            document.getElementById('profileReferrals').textContent = currentUser.referrals || 0;
-            document.getElementById('profileEarnings').textContent = `${(currentUser.totalEarned || 0).toFixed(2)} MTN`;
-            document.getElementById('profileAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
-            
-            const statusEl = document.getElementById('profileStatus');
-            if (currentUser.approved) {
-                statusEl.textContent = 'Aprovado';
-                statusEl.className = 'inline-block bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full mt-1';
-            } else {
-                statusEl.textContent = 'Pendente';
-                statusEl.className = 'inline-block bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full mt-1';
+            if (pending.length === 0) {
+                container.innerHTML = '<div class="p-8 text-center text-gray-500">Nenhuma partilha pendente</div>';
+                return;
             }
 
-            // Update course buttons
-            if (currentUser.fbAulas?.enrolled) {
-                document.getElementById('btnEnroll').innerHTML = '<i class="fas fa-check-circle mr-2"></i>Inscrito';
-                document.getElementById('btnEnroll').disabled = true;
-                document.getElementById('btnEnroll').classList.add('opacity-50', 'cursor-not-allowed');
-            }
-
-            if (currentUser.madrassa?.enrolled) {
-                document.getElementById('btnMadrassaEnroll').innerHTML = '<i class="fas fa-check-circle mr-2"></i>Inscrito';
-                document.getElementById('btnMadrassaEnroll').disabled = true;
-                document.getElementById('btnMadrassaEnroll').classList.add('opacity-50', 'cursor-not-allowed');
-            }
+            pending.forEach(([id, share]) => {
+                const item = document.createElement('div');
+                item.className = 'p-6 flex items-center justify-between hover:bg-gray-50';
+                item.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-share-alt text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900">${share.userName || share.userPhone}</h4>
+                            <p class="text-sm text-gray-500">${share.userPhone}</p>
+                            <p class="text-xs text-gray-400 mt-1">${new Date(share.timestamp).toLocaleString('pt')}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="font-bold text-green-600">+${share.amount} MTN</span>
+                        <button onclick="approveShare('${id}')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+                            <i class="fas fa-check mr-1"></i>Aprovar
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
         }
 
-        // Load Ads
+        async function loadPendingReferrals() {
+            if (!db) return;
+            const snapshot = await db.ref('pendingReferrals').once('value');
+            const referrals = snapshot.val() || {};
+            const container = document.getElementById('pendingReferralsList');
+            container.innerHTML = '';
+
+            const pending = Object.entries(referrals).filter(([_, r]) => !r.approved);
+            
+            if (pending.length === 0) {
+                container.innerHTML = '<div class="p-8 text-center text-gray-500">Nenhuma referência pendente</div>';
+                return;
+            }
+
+            pending.forEach(([id, ref]) => {
+                const item = document.createElement('div');
+                item.className = 'p-6 flex items-center justify-between hover:bg-gray-50';
+                item.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-user-plus text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900">${ref.name || ref.phone}</h4>
+                            <p class="text-sm text-gray-500">${ref.phone}</p>
+                            <p class="text-xs text-gray-400 mt-1">Código do convidador: ${ref.referralCode}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="font-bold text-green-600">+25 MTN</span>
+                        <button onclick="approveReferral('${id}')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+                            <i class="fas fa-check mr-1"></i>Aprovar
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
         async function loadAds() {
-            const container = document.getElementById('adsContainer');
-            container.innerHTML = '<div class="col-span-full text-center py-8"><div class="loading mx-auto"></div><p class="text-gray-500 mt-2">Carregando publicidades...</p></div>';
+            if (!db) return;
+            const snapshot = await db.ref('advertisements').once('value');
+            const ads = snapshot.val() || {};
+            const container = document.getElementById('adsList');
+            container.innerHTML = '';
 
-            try {
-                const snapshot = await db.ref('advertisements').once('value');
-                const ads = snapshot.val() || {};
-                
-                if (Object.keys(ads).length === 0) {
-                    container.innerHTML = `
-                        <div class="col-span-full text-center py-12">
-                            <i class="fas fa-ad text-6xl text-gray-300 mb-4"></i>
-                            <p class="text-gray-500">Nenhuma publicidade disponível</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = '';
-                Object.entries(ads).forEach(([id, ad]) => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-white rounded-xl shadow-md overflow-hidden card-hover';
-                    card.innerHTML = `
-                        <div class="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                            <i class="fas fa-image text-4xl text-gray-400"></i>
-                        </div>
-                        <div class="p-6">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded">${ad.category || 'Geral'}</span>
-                                <span class="text-xs text-gray-500">${ad.shares || 0} partilhas</span>
-                            </div>
-                            <h3 class="font-bold text-lg mb-2">${ad.title}</h3>
-                            <p class="text-gray-600 text-sm mb-4 line-clamp-2">${ad.description}</p>
-                            <button onclick="openShareModal('${id}')" class="w-full share-btn bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold">
-                                <i class="fas fa-share-alt mr-2"></i>Partilhar (+0.75 MTN)
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-            } catch (error) {
-                console.error(error);
-                container.innerHTML = '<div class="col-span-full text-center text-red-500">Erro ao carregar publicidades</div>';
-            }
-        }
-
-        // Update Stats
-        async function updateStats() {
-            if (!currentUser) return;
-            document.getElementById('sharesToday').textContent = currentUser.sharesToday || 0;
-            document.getElementById('totalShares').textContent = currentUser.sharesCount || 0;
-            document.getElementById('discountEarned').textContent = `${(currentUser.discountEarned || 0).toFixed(2)} MTN`;
-        }
-
-        // Share Modal
-        function openShareModal(adId) {
-            currentAd = adId;
-            document.getElementById('shareModal').classList.add('active');
-        }
-
-        function closeShareModal() {
-            document.getElementById('shareModal').classList.remove('active');
-            currentAd = null;
-        }
-
-        // Share Functions
-        async function shareTo(platform) {
-            if (!currentAd || !currentUser) return;
-
-            const adSnapshot = await db.ref('advertisements/' + currentAd).once('value');
-            const ad = adSnapshot.val();
-            if (!ad) return;
-
-            const shareUrl = `${window.location.origin}?ref=${currentUser.referralCode}&ad=${currentAd}`;
-            const text = `📢 ${ad.title}\n\n${ad.description}\n\nPartilhe e ganhe descontos: ${shareUrl}`;
-
-            switch(platform) {
-                case 'whatsapp':
-                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                    break;
-                case 'facebook':
-                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
-                    break;
-                case 'twitter':
-                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
-                    break;
-                case 'copy':
-                    navigator.clipboard.writeText(text);
-                    showToast('Link copiado para a área de transferência!');
-                    closeShareModal();
-                    return;
+            if (Object.keys(ads).length === 0) {
+                container.innerHTML = '<div class="p-8 text-center text-gray-500">Nenhuma publicidade registada</div>';
+                return;
             }
 
-            // Record share
-            await recordShare();
-            closeShareModal();
+            Object.entries(ads).forEach(([id, ad]) => {
+                const item = document.createElement('div');
+                item.className = 'p-6 flex items-center justify-between hover:bg-gray-50';
+                item.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-ad text-gray-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900">${ad.title}</h4>
+                            <p class="text-sm text-gray-500">${ad.category} | ${ad.shares || 0} partilhas</p>
+                        </div>
+                    </div>
+                    <button onclick="deleteAd('${id}')" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
         }
 
-        async function recordShare() {
-            if (!currentUser || !currentAd) return;
-
-            const today = new Date().toDateString();
-            const updates = {};
-
-            // Check if new day
-            if (currentUser.lastShareDate !== today) {
-                updates['users/' + currentUser.phone + '/sharesToday'] = 1;
-            } else {
-                updates['users/' + currentUser.phone + '/sharesToday'] = (currentUser.sharesToday || 0) + 1;
-            }
-
-            updates['users/' + currentUser.phone + '/sharesCount'] = (currentUser.sharesCount || 0) + 1;
-            updates['users/' + currentUser.phone + '/lastShareDate'] = today;
-            updates['users/' + currentUser.phone + '/discountEarned'] = (currentUser.discountEarned || 0) + 0.75;
+        async function loadTransactions() {
+            if (!db) return;
+            const tbody = document.getElementById('transactionsTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Carregando...</td></tr>';
             
-            // Create pending share for admin approval
-            const shareId = 'share_' + Date.now();
-            updates['pendingShares/' + shareId] = {
-                userPhone: currentUser.phone,
-                userName: currentUser.name,
-                adId: currentAd,
-                timestamp: Date.now(),
-                amount: 0.75,
-                approved: false,
-                type: 'ad_share'
-            };
+            const [sharesSnap, refsSnap] = await Promise.all([
+                db.ref('pendingShares').once('value'),
+                db.ref('pendingReferrals').once('value')
+            ]);
 
-            // Increment ad shares
-            updates['advertisements/' + currentAd + '/shares'] = firebase.database.ServerValue.increment(1);
+            const transactions = [];
+            
+            const shares = sharesSnap.val() || {};
+            Object.entries(shares).forEach(([id, s]) => {
+                transactions.push({
+                    date: s.timestamp,
+                    user: s.userName || s.userPhone,
+                    type: 'Partilha',
+                    amount: s.amount,
+                    status: s.approved ? 'Aprovado' : 'Pendente'
+                });
+            });
+
+            const refs = refsSnap.val() || {};
+            Object.entries(refs).forEach(([id, r]) => {
+                transactions.push({
+                    date: r.timestamp,
+                    user: r.name || r.phone,
+                    type: 'Referência',
+                    amount: 25,
+                    status: r.approved ? 'Aprovado' : 'Pendente'
+                });
+            });
+
+            transactions.sort((a, b) => b.date - a.date);
+
+            if (transactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Sem transações</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            transactions.forEach(t => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 text-sm text-gray-600">${new Date(t.date).toLocaleString('pt')}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">${t.user}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${t.type}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-green-600">+${t.amount} MTN</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs rounded-full ${t.status === 'Aprovado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                            ${t.status}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function approveUser(phone) {
+            if (!db) return;
+            await db.ref('users/' + phone + '/approved').set(true);
+            await db.ref('users/' + phone + '/status').set('active');
+            showAdminToast('Utilizador aprovado com sucesso');
+            loadAllData();
+        }
+
+        async function rejectUser(phone) {
+            if (!db) return;
+            if (!confirm('Tem certeza que deseja rejeitar este utilizador?')) return;
+            await db.ref('users/' + phone).remove();
+            showAdminToast('Utilizador rejeitado');
+            loadAllData();
+        }
+
+        async function toggleUserStatus(phone) {
+            if (!db) return;
+            const snap = await db.ref('users/' + phone).once('value');
+            const user = snap.val();
+            await db.ref('users/' + phone + '/approved').set(!user.approved);
+            showAdminToast(`Utilizador ${user.approved ? 'bloqueado' : 'aprovado'}`);
+            loadAllData();
+        }
+
+        async function editUserBalance(phone) {
+            if (!db) return;
+            const newBalance = prompt('Digite o novo saldo:');
+            if (newBalance === null) return;
+            const balance = parseFloat(newBalance);
+            if (isNaN(balance)) {
+                showAdminToast('Valor inválido', 'error');
+                return;
+            }
+            await db.ref('users/' + phone + '/balance').set(balance);
+            showAdminToast('Saldo actualizado');
+            loadAllData();
+        }
+
+        async function approveShare(shareId) {
+            if (!db) return;
+            const snap = await db.ref('pendingShares/' + shareId).once('value');
+            const share = snap.val();
+            if (!share) return;
+
+            const updates = {};
+            updates['pendingShares/' + shareId + '/approved'] = true;
+            updates['users/' + share.userPhone + '/balance'] = firebase.database.ServerValue.increment(share.amount);
+            updates['users/' + share.userPhone + '/totalEarned'] = firebase.database.ServerValue.increment(share.amount);
 
             await db.ref().update(updates);
+            showAdminToast(`Partilha aprovada: +${share.amount} MTN para ${share.userName}`);
+            loadAllData();
+        }
+
+        async function approveAllShares() {
+            if (!db) return;
+            const snap = await db.ref('pendingShares').once('value');
+            const shares = snap.val() || {};
+            const pending = Object.entries(shares).filter(([_, s]) => !s.approved);
             
-            // Update local
-            currentUser.sharesCount = (currentUser.sharesCount || 0) + 1;
-            currentUser.sharesToday = currentUser.lastShareDate !== today ? 1 : (currentUser.sharesToday || 0) + 1;
-            currentUser.lastShareDate = today;
-            currentUser.discountEarned = (currentUser.discountEarned || 0) + 0.75;
-
-            updateStats();
-            showToast('Partilha registada! +0.75 MTN (pendente de aprovação)');
-        }
-
-        // Copy Referral
-        function copyReferral() {
-            const code = document.getElementById('referralCode').textContent;
-            navigator.clipboard.writeText(code);
-            showToast('Código copiado: ' + code);
-        }
-
-        function copyMadrassaRef() {
-            const code = document.getElementById('madrassaRefCode').textContent;
-            navigator.clipboard.writeText(code);
-            showToast('Código copiado: ' + code);
-        }
-
-        // Enroll Course
-        async function enrollCourse() {
-            if (!currentUser) return;
-            
-            const paymentType = document.querySelector('input[name="payment"]:checked').value;
-            const cost = 500;
-
-            if (currentUser.balance < cost) {
-                showToast('Saldo insuficiente. Recarregue sua conta.', 'error');
+            if (pending.length === 0) {
+                showAdminToast('Nenhuma partilha pendente');
                 return;
             }
 
-            try {
+            let count = 0;
+            for (const [id, share] of pending) {
                 const updates = {};
-                updates['users/' + currentUser.phone + '/balance'] = currentUser.balance - cost;
-                updates['users/' + currentUser.phone + '/fbAulas/enrolled'] = true;
-                updates['users/' + currentUser.phone + '/fbAulas/paymentType'] = paymentType;
-                updates['users/' + currentUser.phone + '/fbAulas/enrolledAt'] = Date.now();
-
-                if (paymentType === 'installment') {
-                    updates['users/' + currentUser.phone + '/fbAulas/installmentsPaid'] = 1;
-                    updates['users/' + currentUser.phone + '/fbAulas/totalPaid'] = 200;
-                    updates['users/' + currentUser.phone + '/fbAulas/nextPaymentDate'] = Date.now() + 30 * 24 * 60 * 60 * 1000;
-                } else {
-                    updates['users/' + currentUser.phone + '/fbAulas/totalPaid'] = 500;
-                }
-
+                updates['pendingShares/' + id + '/approved'] = true;
+                updates['users/' + share.userPhone + '/balance'] = firebase.database.ServerValue.increment(share.amount);
+                updates['users/' + share.userPhone + '/totalEarned'] = firebase.database.ServerValue.increment(share.amount);
                 await db.ref().update(updates);
-                
-                currentUser.balance -= cost;
-                currentUser.fbAulas = {
-                    enrolled: true,
-                    paymentType: paymentType,
-                    installmentsPaid: paymentType === 'installment' ? 1 : 0,
-                    totalPaid: paymentType === 'installment' ? 200 : 500
-                };
-
-                updateProfileUI();
-                showToast('Inscrição efectuada com sucesso no FB Aulas Online!');
-            } catch (error) {
-                console.error(error);
-                showToast('Erro ao inscrever. Tente novamente.', 'error');
+                count++;
             }
+
+            showAdminToast(`${count} partilhas aprovadas`);
+            loadAllData();
         }
 
-        // Enroll Madrassa
-        async function enrollMadrassa() {
-            if (!currentUser) return;
-            const cost = 150;
+        async function approveReferral(refId) {
+            if (!db) return;
+            const snap = await db.ref('pendingReferrals/' + refId).once('value');
+            const ref = snap.val();
+            if (!ref) return;
 
-            if (currentUser.balance < cost) {
-                showToast('Saldo insuficiente. Recarregue sua conta.', 'error');
+            const usersSnap = await db.ref('users').once('value');
+            const users = usersSnap.val() || {};
+            let referrerPhone = null;
+            
+            Object.entries(users).forEach(([phone, user]) => {
+                if (user.referralCode === ref.referralCode) {
+                    referrerPhone = phone;
+                }
+            });
+
+            if (!referrerPhone) {
+                showAdminToast('Convidador não encontrado', 'error');
                 return;
             }
 
-            try {
-                const updates = {};
-                updates['users/' + currentUser.phone + '/balance'] = currentUser.balance - cost;
-                updates['users/' + currentUser.phone + '/madrassa/enrolled'] = true;
-                updates['users/' + currentUser.phone + '/madrassa/subscriptionActive'] = true;
-                updates['users/' + currentUser.phone + '/madrassa/enrolledAt'] = Date.now();
-                updates['users/' + currentUser.phone + '/madrassa/nextPaymentDate'] = Date.now() + 30 * 24 * 60 * 60 * 1000;
+            const updates = {};
+            updates['pendingReferrals/' + refId + '/approved'] = true;
+            updates['users/' + referrerPhone + '/balance'] = firebase.database.ServerValue.increment(25);
+            updates['users/' + referrerPhone + '/sellerBalance'] = firebase.database.ServerValue.increment(25);
+            updates['users/' + referrerPhone + '/totalEarned'] = firebase.database.ServerValue.increment(25);
+            updates['users/' + referrerPhone + '/referrals'] = firebase.database.ServerValue.increment(1);
 
-                await db.ref().update(updates);
-                
-                currentUser.balance -= cost;
-                currentUser.madrassa = {
-                    enrolled: true,
-                    subscriptionActive: true
-                };
-
-                updateProfileUI();
-                showToast('Inscrição na Madrassa Online efectuada!');
-            } catch (error) {
-                console.error(error);
-                showToast('Erro ao inscrever na Madrassa', 'error');
-            }
+            await db.ref().update(updates);
+            showAdminToast('Referência aprovada: +25 MTN para o convidador');
+            loadAllData();
         }
 
-        // Notifications
-        function toggleNotifications() {
-            document.getElementById('notifPanel').classList.toggle('hidden');
-        }
+        document.getElementById('addAdForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!db) return;
+            
+            const adData = {
+                title: document.getElementById('adTitle').value,
+                description: document.getElementById('adDescription').value,
+                category: document.getElementById('adCategory').value,
+                image: document.getElementById('adImage').value || null,
+                shares: 0,
+                createdAt: Date.now()
+            };
 
-        // Logout
-        function logout() {
-            currentUser = null;
-            localStorage.removeItem('currentUserPhone');
-            document.getElementById('mainApp').classList.add('hidden');
-            document.getElementById('authContainer').classList.remove('hidden');
-            switchAuthTab('login');
-            showToast('Sessão terminada');
-        }
-
-        // Check for stored session
-        async function checkSession() {
-            const phone = localStorage.getItem('currentUserPhone');
-            if (phone) {
-                try {
-                    const snapshot = await db.ref('users/' + phone).once('value');
-                    if (snapshot.exists()) {
-                        const userData = snapshot.val();
-                        if (userData.approved) {
-                            currentUser = { phone, ...userData };
-                            showMainApp();
-                            return;
-                        }
-                    }
-                } catch (error) {
-                    console.error(error);
-                }
-            }
-            document.getElementById('loadingScreen').classList.add('hidden');
-            document.getElementById('authContainer').classList.remove('hidden');
-        }
-
-        // Handle URL params (referral)
-        function handleUrlParams() {
-            const params = new URLSearchParams(window.location.search);
-            const refCode = params.get('ref');
-            if (refCode) {
-                document.getElementById('regReferral').value = refCode;
-                switchAuthTab('register');
-            }
-        }
-
-        // Initialize
-        window.addEventListener('load', () => {
-            handleUrlParams();
-            checkSession();
+            const newRef = db.ref('advertisements').push();
+            await newRef.set(adData);
+            
+            document.getElementById('addAdForm').reset();
+            showAdminToast('Publicidade adicionada com sucesso');
+            loadAds();
         });
 
-        // Close modal on outside click
-        document.getElementById('shareModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('shareModal')) {
-                closeShareModal();
-            }
-        });
+        async function deleteAd(adId) {
+            if (!db) return;
+            if (!confirm('Deseja remover esta publicidade?')) return;
+            await db.ref('advertisements/' + adId).remove();
+            showAdminToast('Publicidade removida');
+            loadAds();
+        }
+
+        function filterUsers() {
+            const term = document.getElementById('searchUsers').value.toLowerCase();
+            const rows = document.querySelectorAll('#usersTableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        }
     </script>
 </body>
 </html>
